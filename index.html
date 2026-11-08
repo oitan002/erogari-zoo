@@ -75,6 +75,15 @@ masterpiece, best quality, ultra detailed, beautiful anime illustration, detaile
  members[1].characters.push(tora);
 }
 members[2].characters=['代理くん','水色','赤色','ねずみ','つばき','女代理','猫','兎'].map((name,i)=>({name,image:'images/oitan'+(i+1)+'.png',prompts:emptyPrompts()}));
+{
+ const aka={name:'赤髪',prompts:emptyPrompts()};
+ const kuro={name:'黒髪',prompts:emptyPrompts()};
+ for(const m of ['Tsubaki.','SDXL']){
+  aka.prompts[m]={positive:'Center-parted hair, middle part, half-up hairstyle, red hair, piercings, eyelashes, sharp/intimidating gaze, dark eyes, snaggletooth,',outfit:'three-piece suit,',negative:''};
+  kuro.prompts[m]={positive:'Short black hair, middle part, center part, short haircut, forehead, eyelashes, black hair, black eyes, languid expression,',outfit:'black gloves, dark suit,',negative:''};
+ }
+ members[1].characters.push(aka,kuro);
+}
 const list=document.querySelector('#list'),dialog=document.querySelector('#detail'),boxes=document.querySelector('#boxes'),status=document.querySelector('#status');let current,mode='Tsubaki.',filter='ALL';
 members.forEach(member=>{const section=document.createElement('section');section.className='member';const heading=document.createElement('h3');heading.textContent=member.name;const icons=document.createElement('div');icons.className='icons';member.characters.forEach(character=>{const button=document.createElement('button');button.className='character';button.dataset.tsubaki=Object.values(character.prompts['Tsubaki.']).some(Boolean);button.dataset.sdxl=Object.values(character.prompts['SDXL']).some(Boolean);const avatar=document.createElement('span');avatar.className='avatar';if(character.image){const img=document.createElement('img');img.src=character.image;img.alt='';img.style.cssText='width:110px;height:110px;object-fit:cover;object-position:center 20%;border-radius:28px;display:block';avatar.append(img)}else{avatar.textContent=''};const label=document.createElement('span');label.textContent=character.name;button.append(avatar,label);button.addEventListener('click',()=>{current=character;mode=filter==='ALL'?(Object.values(character.prompts['Tsubaki.']).some(Boolean)?'Tsubaki.':'SDXL'):filter;dialog.style.setProperty('--character-bg',character.image ? 'url("'+character.image+'")' : 'none');document.querySelector('.detail-portrait').hidden=!character.image;if(character.image)document.querySelector('.detail-portrait').src=character.image;document.querySelector('#title').textContent=character.name;document.querySelector('#owner').textContent=member.name+' のキャラクター';render();dialog.showModal()});icons.append(button)});section.append(heading,icons);list.append(section)});
 async function copy(value){if(!value){status.textContent='プロンプトはまだ登録されていません。';return}try{await navigator.clipboard.writeText(value);status.textContent='コピーしました！'}catch{status.textContent='コピーできませんでした。公開サイトでお試しください。'}}

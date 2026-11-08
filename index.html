@@ -102,9 +102,18 @@ async function copy(value){if(!value){status.textContent='プロンプトはま�
 function updateTabs(){document.querySelector('#filter-all').classList.toggle('active',filter==='ALL');document.querySelector('#tsubaki').classList.toggle('active',filter==='Tsubaki.');document.querySelector('#sdxl').classList.toggle('active',filter==='SDXL');document.querySelectorAll('.character').forEach(b=>{b.hidden=filter!=='ALL' && b.dataset[filter==='Tsubaki.'?'tsubaki':'sdxl']!=='true'});document.querySelectorAll('.member').forEach(section=>{section.hidden=!Array.from(section.querySelectorAll('.character')).some(b=>!b.hidden)})} function render(){status.textContent='';const available=['Tsubaki.','SDXL'].filter(m=>Object.values(current.prompts[m]).some(Boolean));document.querySelector('#model-label').textContent=available.length?'( '+available.join(' / ')+' )':'';document.querySelector('#detail-tabs').style.display=['Tsubaki.','SDXL'].every(m=>Object.values(current.prompts[m]).some(Boolean))?'flex':'none';document.querySelector('#detail-tsubaki').classList.toggle('active',mode==='Tsubaki.');document.querySelector('#detail-sdxl').classList.toggle('active',mode==='SDXL');boxes.replaceChildren();const data=current.prompts[mode];[['ポジティブ','positive'],['服装','outfit'],['ネガティブ','negative']].forEach(([label,key])=>{const box=document.createElement('section');box.className='box';const head=document.createElement('div');head.className='boxhead';const title=document.createElement('strong');title.textContent=label;const button=document.createElement('button');button.className='btn';button.textContent='copy';button.onclick=()=>copy(data[key]);const text=document.createElement('p');text.textContent=data[key]||'まだ登録されていません';head.append(title,button);box.append(head,text);boxes.append(box)})}
 document.querySelector('#filter-all').onclick=()=>{filter='ALL';updateTabs()};document.querySelector('#tsubaki').onclick=()=>{filter='Tsubaki.';updateTabs()};document.querySelector('#sdxl').onclick=()=>{filter='SDXL';updateTabs()};document.querySelector('#detail-tsubaki').onclick=()=>{mode='Tsubaki.';render()};document.querySelector('#detail-sdxl').onclick=()=>{mode='SDXL';render()};document.querySelector('#all').onclick=()=>copy(Object.values(current.prompts[mode]).filter(Boolean).join(', '));document.querySelector('#close').onclick=()=>dialog.close();
 
-// 表紙の画像を順番に入れ替えます。
-const coverImages=members.flatMap(m=>m.characters).map(c=>c.image).filter(Boolean);
-if(coverImages.length && !matchMedia('(prefers-reduced-motion: reduce)').matches){let coverOffset=4;const coverPanels=[...document.querySelectorAll('.ed-panel img')];setInterval(()=>{if(document.hidden)return;coverPanels.forEach((img,i)=>{const next=coverImages[(coverOffset+i)%coverImages.length];const preload=new Image();preload.onload=()=>{img.classList.add('changing');setTimeout(()=>{img.src=next;img.classList.remove('changing')},450)};preload.src=next});coverOffset=(coverOffset+coverPanels.length)%coverImages.length},6000)}
+// 表紙の画像をランダムに入れ替えます。
+const coverImages=[...new Set(members.flatMap(m=>m.characters).map(c=>c.image).filter(Boolean))];
+const coverPanels=[...document.querySelectorAll('.ed-panel img')];
+function shuffleCover(){
+ if(document.hidden||!coverImages.length)return;
+ const current=coverPanels.map(img=>img.getAttribute('src'));
+ let pool=coverImages.filter(src=>!current.includes(src));
+ if(pool.length<coverPanels.length)pool=[...coverImages];
+ for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}
+ coverPanels.forEach((img,i)=>{const next=pool[i%pool.length];if(!next||next===img.getAttribute('src'))return;const preload=new Image();preload.onload=()=>{img.classList.add('changing');setTimeout(()=>{img.src=next;img.classList.remove('changing')},450)};preload.src=next});
+}
+if(coverImages.length&&!matchMedia('(prefers-reduced-motion: reduce)').matches){shuffleCover();setInterval(shuffleCover,6000)}
 </script></body></html>
 
 
